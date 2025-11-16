@@ -1,0 +1,7 @@
+{
+    "img_retrieval": {
+        "drive_api_keys": "./secrets/drive_api_keys.json",
+        "folder_id": "1H6miVnKLQh8AzWEWH1Yq2fL273XTvCFa",
+        "folder_dest": "./datasets/downloaded_images"
+    }
+}
