@@ -4,14 +4,17 @@ from ultralytics import YOLO
 ## Lectura de codigos de barra
 from pyzbar.pyzbar import decode
 ## Manejo de imagenes
-import os
 from PIL import Image
 ## Utilidades
-from numpy import argmax
+import numpy as np
+import json
+## Logs
+import logging
+logger = logging.getLogger("base")
 
 # Parametros
 from .config import MODEL_PATH
-#ORIGIN_FOLDER = './datasets/downloaded_images/'
+logger.info(f"Cargando modelo en {MODEL_PATH}")
 MODEL = YOLO(MODEL_PATH)
 
 
@@ -33,6 +36,7 @@ def detect_objects(origin_folder: str, model: any = MODEL):
     """
 
     # Obtener predicciones
+    logger.info("Detectando objetos.")
     preds = model.predict(origin_folder, verbose=False)
     # Generar informacion de cada imagen
     imgs_info = []
@@ -60,15 +64,31 @@ def region_properties(box: list|tuple) -> dict:
             - width: Ancho de la region
             - height: Alto de la region
     """
-    # Esquinas de la region
-    quad = (box['x4'], box['y4'], box['x1'], box['y1'], box['x2'], box['y2'], box['x3'], box['y3'])
+    # Lista de vectores de esquinas
+    corners = [np.array([box[f"x{i}"],box[f"y{i}"]]) for i in range(1,5)]
+
+    # Encontrar esquina superior izquierda
+    ## Ordenar por coordenada x
+    corners = sorted(corners, key=lambda corner: corner[0])
+    ## Entre las dos coordenadas mas a la izquierda, encontrar la mas arriba
+    if corners[0][1] > corners[1][1]:
+        UL_corner = corners[0][1]
+    else:
+        UL_corner = corners[1][1]
+    ## Ordenar por distancia a la esquina superior izquierda
+    corners_sort_dist = sorted(corners, key=lambda corner: np.linalg.norm(UL_corner-corner))
+    ## Obtener esquinas en orden: lower left, upper left, upper right, lower right
+    new_corners = [corners_sort_dist[i] for i in [2,0,1,3]]
+
     # Largo y ancho
-    width = ((box['x1']-box['x2'])**2 + (box['y1']-box['y2'])**2)**0.5
-    height = ((box['x3']-box['x2'])**2 + (box['y3']-box['y2'])**2)**0.5
-    if width > height:
-        width, height = height, width
+    width = np.linalg.norm(UL_corner - corners_sort_dist[1])
+    height = np.linalg.norm(UL_corner - corners_sort_dist[2])
+
+    # Aplanar lista
+    new_corners = [x for tup in new_corners for x in tup]
+
     # Diccionario con propiedades de la region
-    props = {'quad': quad, 'width': int(width), 'height': int(height)}
+    props = {'quad': new_corners, 'width': int(width), 'height': int(height)}
     return props
 
 def process_products(products: list) -> int:
@@ -111,17 +131,31 @@ def process_guides(guides: list, img_path: str) -> str:
     """
     # Filtrar guia con area mas grande
     regions = [region_properties(guide['box']) for guide in guides]
-    idx = argmax([box['width']*box['height'] for box in regions])
+    idx = np.argmax([box['width']*box['height'] for box in regions])
     region = regions[idx]
 
     # Obtener region de la guia
     with Image.open(img_path) as img:
-        guide_img = img.transform((region['width'], region['height']), Image.QUAD, region['quad'])
+        guide_img = img.transform((region['width'], region['height']), Image.QUAD, region['quad'], Image.Resampling.BICUBIC)
 
-    # Abrir imagen y buscar codigo de barras
-    code_list = [code.data.decode() for code in decode(guide_img) if code.type=='CODE128']
-    track_ids = [code for code in code_list if len(code)==11]
-    track_id = track_ids[0] if track_ids else ''
+    # Abrir imagen y buscar codigos de barras o QR
+    track_id = ''
+    for code in decode(guide_img):
+        # Procesamiento de codigo de barras
+        if code.type == 'CODE128':
+            if len(code.data.decode()) == 11:
+                track_id = code.data.decode()
+                break
+        # Procesamiento de codigos QR
+        if code.type == 'QRCODE':
+            try:
+                content = json.loads(code.data.decode())
+                if len(content['id']) == 11:
+                    track_id = content['id']
+                    break
+            except:
+                continue
+    
     return track_id
 
 

@@ -1,4 +1,5 @@
-import json, logging, logging.config
+import json
+import logging, logging.config
 with open('logging.json') as file:
     logging.config.dictConfig(json.load(file))
 

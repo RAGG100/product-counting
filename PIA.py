@@ -8,21 +8,24 @@ if __name__ == '__main__':
         logging.config.dictConfig(json.load(file))
 
     logger = logging.getLogger('base')
-    logger.info("Prueba")
-    
+
+    logger.info('Iniciando obtencion de imagenes')    
     folder = transform_images(get_images())
+
+    logger.info('Iniciando deteccion de objetos')    
     imgs_info = detect_objects(folder)
     for info in imgs_info:
         objs = info.pop('objects',[])
         info['n_products'] = process_products([obj for obj in objs if obj['name'] == 'Producto'])
         info['tracking_id'] = process_guides([obj for obj in objs if obj['name'] == 'Guia'], info['path'])
+
+    logger.info('Iniciando carga de imagenes')
     create_message(upload_image(get_sale_order(get_tracking_info(imgs_info))))
 
-    with open('debug.txt', 'w') as file:
-        info_row = """path: {path}
-Numero de orden: {order_name}
-Numero de rastreo: {tracking_id}
-Numero de productos: {n_products}
--------------------------------------"""
+    logger.info('Guardando resultados en /datasets/results.csv')
+    with open('./datasets/results.csv', 'w') as file:
+        print("Ubicacion,Numero de rastreo,Numero de orden,Numero de productos", file=file)
+        info_row = "{path},{tracking_id},{order_name},{n_products}"
         for info in imgs_info:
             print(info_row.format(**info), file=file)
+    logger.info('Proceso terminado')
