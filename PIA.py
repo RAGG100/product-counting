@@ -2,8 +2,14 @@
 from PYCD_RAGG.image_retrieval import get_images, transform_images
 from PYCD_RAGG.object_detection import detect_objects, process_guides, process_products
 from PYCD_RAGG.image_uploading import get_tracking_info, get_sale_order, upload_image, create_message
-
+import logging, json
 if __name__ == '__main__':
+    with open('logging.json') as file:
+        logging.config.dictConfig(json.load(file))
+
+    logger = logging.getLogger('base')
+    logger.info("Prueba")
+    
     folder = transform_images(get_images())
     imgs_info = detect_objects(folder)
     for info in imgs_info:

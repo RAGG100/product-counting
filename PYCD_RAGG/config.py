@@ -1,6 +1,10 @@
 # Librerias
 import json
+import logging
+logger = logging.getLogger("base")
+
 with open('config.json') as file:
+    logger.info("Carga de archivo de configuracion.")
     _config = json.load(file)
 
 # Parametros

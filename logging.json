@@ -1,0 +1,25 @@
+{
+    "version": 1,
+    "formatters": {
+        "base": {
+            "format": "{asctime} {module}-{levelname}: {message}",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+            "style": "{"
+        }
+    },
+    "handlers": {
+        "base": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "INFO",
+            "formatter": "base",
+            "filename": "logger.log",
+            "maxBytes": 1024
+        }
+    },
+    "loggers": {
+        "base": {
+            "level": "INFO",
+            "handlers": ["base"]
+        }
+    }
+}
