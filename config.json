@@ -3,5 +3,12 @@
         "drive_api_keys": "./secrets/drive_api_keys.json",
         "folder_id": "1H6miVnKLQh8AzWEWH1Yq2fL273XTvCFa",
         "folder_dest": "./datasets/downloaded_images"
+    },
+    "obj_detection": {
+        "model": "./models/modelo_2025-11-13.pt"
+    },
+    "img_uploading": {
+        "odoo_api_keys": "./secrets/odoo_api_keys_test.json",
+        "track_file": "./datasets/tracks_id.csv"
     }
 }

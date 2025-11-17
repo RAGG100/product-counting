@@ -18,7 +18,7 @@ CREDENTIALS = service_account.Credentials.from_service_account_file(
    )
 
 # Obtener imagenes de archivo
-def get_images(folder_id: str = FOLDER_ID, dest_folder: str = FOLDER_DEST, credentials: any = CREDENTIALS) -> None:
+def get_images(folder_id: str = FOLDER_ID, dest_folder: str = FOLDER_DEST, credentials: any = CREDENTIALS) -> str:
     """
     Funcion que descarga imagenes dentro de una carpeta de Drive especifica
 
@@ -33,7 +33,8 @@ def get_images(folder_id: str = FOLDER_ID, dest_folder: str = FOLDER_DEST, crede
 
     Regresa
     -------
-    None
+    dest_folder : str
+        Ruta de carpeta con imagenes descargadas
     """
     # Crear cliente
     service = build("drive", "v3", credentials=CREDENTIALS)
@@ -74,7 +75,20 @@ def get_images(folder_id: str = FOLDER_ID, dest_folder: str = FOLDER_DEST, crede
     return dest_folder
 
 # Transformacion de imagenes
-def transform_images(origin_folder: str):
+def transform_images(origin_folder: str) -> str:
+    """
+    Funcion que aplica transformaciones a imagenes en una carpeta especifica
+
+    Parametros
+    ----------
+    origin_folder : str
+        Ruta de carpeta donde se encuentran las imagenes a transformar
+
+    Regresa
+    -------
+    origin_folder : str
+        Ruta de carpeta con imagenes transformadas
+    """
     for file in os.listdir(origin_folder):
         if not file.endswith('.jpg'):
             continue
