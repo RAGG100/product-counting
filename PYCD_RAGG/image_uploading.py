@@ -53,7 +53,6 @@ def get_tracking_info(imgs_info: list, tracking_file: str = TRACK_FILE) -> list:
         info['order_name'] = track_order.get(info['tracking_id'], '')
     return imgs_info
 
-# Obtener id de venta
 def get_sale_order(imgs_info: list) -> list:
     """
     Funcion que obtiene el id de orden asociado a cada numero de orden

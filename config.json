@@ -10,5 +10,8 @@
     "img_uploading": {
         "odoo_api_keys": "./secrets/odoo_api_keys_test.json",
         "track_file": "./datasets/tracks_id.csv"
+    },
+    "error_management": {
+        "folder_id": "1N_LNwHF-i7AH60nipfHSQ7CXq2WR3Rpm"
     }
 }

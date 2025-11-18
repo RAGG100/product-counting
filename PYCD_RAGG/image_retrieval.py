@@ -23,7 +23,7 @@ CREDENTIALS = service_account.Credentials.from_service_account_file(
 SERVICE = build("drive", "v3", credentials=CREDENTIALS)
 
 # Obtener imagenes de archivo
-def get_images(folder_id: str = FOLDER_ID, dest_folder: str = FOLDER_DEST) -> str:
+def get_images(folder_id: str = FOLDER_ID, dest_folder: str = FOLDER_DEST) -> list[dict]:
     """
     Funcion que descarga imagenes dentro de una carpeta de Drive especifica
 
@@ -33,13 +33,11 @@ def get_images(folder_id: str = FOLDER_ID, dest_folder: str = FOLDER_DEST) -> st
         ID de la carpeta de Drive a descargar
     dest_folder : str
         Ruta de carpeta donde se descargaran las imagenes
-    credentials : 
-        Credenciales de acceso creadas con google.oauth2.service_account
 
     Regresa
     -------
-    dest_folder : str
-        Ruta de carpeta con imagenes descargadas
+    imgs_info : list[dict]
+        Lista con un diccionario de propiedades para cada imagen
     """
     # Obtener lista de archivos
     try:
@@ -57,6 +55,7 @@ def get_images(folder_id: str = FOLDER_ID, dest_folder: str = FOLDER_DEST) -> st
     
     # Descargar imagenes
     logger.info(f"Descargando imagenes")
+    imgs_info = []
     for image in response.get('files', []):
         logger.debug(f"Descargando {image['name']}")
         try:
@@ -74,37 +73,42 @@ def get_images(folder_id: str = FOLDER_ID, dest_folder: str = FOLDER_DEST) -> st
             # Guardar en carpeta
             with open(os.path.join(dest_folder, image['name']), 'wb') as img_file:
               img_file.write(file.getbuffer())
+    
+            imgs_info.append({'drive_link': 'https://drive.google.com/file/d/'+image['id'], 
+                             'path': os.path.join(dest_folder, image['name'])})
         except HttpError as error:
             logger.error(f"Error al descargar {image['name']}: {error}")
+        
     logger.info(f"Imagenes descargadas en {dest_folder}")
-    return dest_folder
+    return imgs_info
 
 # Transformacion de imagenes
-def transform_images(origin_folder: str) -> str:
+def transform_images(imgs_info: list[dict]) -> list[dict]:
     """
     Funcion que aplica transformaciones a imagenes en una carpeta especifica
 
     Parametros
     ----------
-    origin_folder : str
-        Ruta de carpeta donde se encuentran las imagenes a transformar
+    imgs_info : list[dict]
+        Lista de diccionarios con propiedades
+            - path: Ruta de acceso a imagen
 
     Regresa
     -------
-    origin_folder : str
-        Ruta de carpeta con imagenes transformadas
+    img_info : list[dict]
+        Lista con un diccionario de propiedades para cada imagen
     """
     logger.info('Transformando imagenes')
-    for file in os.listdir(origin_folder):
+    files = [info['path'] for info in imgs_info]
+    for file in files:
         if not file.endswith('.jpg'):
             continue
         logger.debug(f"Transformando imagen {file}")
-        img_path = os.path.join(origin_folder, file)
-        with Image.open(img_path).convert('RGB') as img:
+        with Image.open(file).convert('RGB') as img:
             # Rotar imagen para estar en vertical si esta en horizontal
             if img.size[0] < img.size[1]:
                 continue
             img = img.rotate(-90, expand=True)
-            img.save(img_path)
-    logger.info(f"Imagenes transformadas guardadas en: {origin_folder}")
-    return origin_folder
+            img.save(file)
+    logger.info(f"Imagenes transformadas.")
+    return imgs_info

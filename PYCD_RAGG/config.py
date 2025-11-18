@@ -18,7 +18,12 @@ FOLDER_DEST = img_retrieval_parms.get('folder_dest')
 obj_detection_parms = _config.get('obj_detection', {})
 MODEL_PATH = obj_detection_parms.get('model')
 
-## Deteccion de objetos
+## Carga de imagenes
 img_uploading = _config.get('img_uploading', {})
 ODOO_KEYS = img_uploading.get('odoo_api_keys')
 TRACK_FILE = img_uploading.get('track_file')
+
+## Manejo de errores
+error_management = _config.get('error_management', {})
+ERROR_FOLDER_ID = error_management.get('folder_id')
+ERROR_ORIGIN_FOLDER = error_management.get('origin_folder')

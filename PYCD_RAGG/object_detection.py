@@ -18,14 +18,15 @@ logger.info(f"Cargando modelo en {MODEL_PATH}")
 MODEL = YOLO(MODEL_PATH)
 
 
-def detect_objects(origin_folder: str, model: any = MODEL):
+def detect_objects(imgs_info: list[dict], model: any = MODEL) -> list[dict]:
     """
     Funcion que aplica un modelo de deteccion a imagenes en una carpeta especifica
 
     Parametros
     ----------
-    origin_folder : str
-        Ruta de carpeta donde se encuentran las imagenes
+    imgs_info : list[dict]
+        Lista de diccionarios con propiedades
+            - path: Ruta de acceso a imagen
     model : 
         Modelo de deteccion de objetos. Requiere metodo predict
 
@@ -37,14 +38,11 @@ def detect_objects(origin_folder: str, model: any = MODEL):
 
     # Obtener predicciones
     logger.info("Detectando objetos.")
-    preds = model.predict(origin_folder, verbose=False)
-    # Generar informacion de cada imagen
-    imgs_info = []
-    for pred in preds:
-        imgs_info.append({
-            'path': pred.path,
-            'objects': pred.summary()
-        })
+    files = [info['path'] for info in imgs_info]
+    preds = model.predict(files, verbose=False)
+    # Agregar objetos detectados a informacion de imagen
+    for i, pred in enumerate(preds):
+        imgs_info[i]['objects'] = pred.summary()
     return imgs_info
 
 def region_properties(box: list|tuple) -> dict:
