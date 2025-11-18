@@ -12,10 +12,10 @@ if __name__ == '__main__':
     logger = logging.getLogger('base')
 
     logger.info('Iniciando obtencion de imagenes')    
-    folder = transform_images(get_images())
+    imgs_info = transform_images(get_images())
 
     logger.info('Iniciando deteccion de objetos')    
-    imgs_info = detect_objects(folder)
+    imgs_info = detect_objects(imgs_info)
     for info in imgs_info:
         objs = info.pop('objects',[])
         info['n_products'] = process_products([obj for obj in objs if obj['name'] == 'Producto'])
